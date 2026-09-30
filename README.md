@@ -24,8 +24,8 @@ El objetivo de esta auditoría es **demostrar en la práctica qué información 
 
 | Campo | Valor |
 |---|---|
-| **Sitio** | `http://neverssl.com` |
-| **Host** | `neverssl.com` |
+| **Sitio** | `http://neverssl.com` (redirige a `http://sublimelushrelaxedjoke.neverssl.com/online/`) |
+| **Host** | `sublimelushrelaxedjoke.neverssl.com` (subdominio aleatorio de `neverssl.com`) |
 | **Protocolo** | **HTTP** (sin cifrado, puerto 80) |
 | **Propósito del sitio** | Página creada a propósito para no usar nunca HTTPS; sirve para pruebas y laboratorios |
 
@@ -49,7 +49,9 @@ Esto significa que **toda la comunicación viaja en texto plano**. Es como una p
 2. Abrí las herramientas de desarrollador con **F12**.
 3. Seleccioné la pestaña **Network (Red)**.
 4. Recargué la página (**F5**).
-5. Seleccioné la **primera solicitud** (el documento `neverssl.com`).
+5. Seleccioné la **primera solicitud** (el documento `online/`).
+
+> **Nota:** `neverssl.com` redirige a un subdominio aleatorio (en mi caso `sublimelushrelaxedjoke.neverssl.com/online/`) para evitar que el navegador use una versión guardada en caché. El sitio sigue siendo el mismo y sigue funcionando por HTTP.
 
 ![Captura de la pestaña Network en neverssl.com](evidencia/captura-network.png)
 
@@ -57,35 +59,54 @@ Esto significa que **toda la comunicación viaja en texto plano**. Es como una p
 
 | Dato | Valor observado |
 |---|---|
-| **URL solicitada** | `http://neverssl.com/` |
+| **URL solicitada** | `http://sublimelushrelaxedjoke.neverssl.com/online/` |
 | **Método HTTP** | `GET` |
 | **Código de estado** | `200 OK` |
-| **Host** | `neverssl.com` |
+| **Host** | `sublimelushrelaxedjoke.neverssl.com` |
 | **Protocolo** | `http/1.1` |
 | **Puerto remoto** | `80` |
+| **Servidor** | `Apache/2.4.68` |
+| **Tipo de contenido** | `text/html; charset=UTF-8` |
 
 ### Headers de la solicitud (Request Headers)
 
 ```http
-GET / HTTP/1.1
-Host: neverssl.com
+GET /online/ HTTP/1.1
+Host: sublimelushrelaxedjoke.neverssl.com
 Connection: keep-alive
+Cache-Control: max-age=0
 Upgrade-Insecure-Requests: 1
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/... Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://neverssl.com/
 Accept-Encoding: gzip, deflate
-Accept-Language: es-419,es;q=0.9
+Accept-Language: en-US,en;q=0.9,es;q=0.8
+DNT: 1
+Sec-GPC: 1
+```
+
+### Headers de la respuesta (Response Headers)
+
+```http
+HTTP/1.1 200 OK
+Server: Apache/2.4.68 ()
+Content-Type: text/html; charset=UTF-8
+Date: Wed, 30 Sep 2026 22:12:15 GMT
+Last-Modified: Wed, 29 Jun 2022 00:23:22 GMT
+Keep-Alive: timeout=5, max=99
 ```
 
 ### ¿Qué información puede observarse durante la solicitud?
 
 Como la conexión no está cifrada, un tercero que capture el tráfico puede leer, entre otras cosas:
 
-- **Host:** el nombre exacto del sitio que visito (`neverssl.com`).
+- **Host:** el nombre exacto del sitio que visito (`sublimelushrelaxedjoke.neverssl.com`).
 - **URL completa:** no solo el dominio, sino la página exacta y cualquier parámetro (por ejemplo, `?usuario=juan&busqueda=...`).
 - **Método GET:** qué tipo de acción estoy haciendo (pedir una página, o enviar un formulario con `POST`).
-- **User-Agent:** mi sistema operativo (Windows 10/11, 64 bits) y mi navegador (Chrome) con su versión.
-- **Accept-Language:** mi idioma y región (`es-419`, español latinoamericano).
+- **User-Agent:** mi sistema operativo (Windows NT 10.0, 64 bits) y mi navegador con su versión exacta (Chrome 154).
+- **Accept-Language:** mis idiomas preferidos (`en-US, en, es`).
+- **Referer:** la página desde la que llegué (`http://neverssl.com/`), lo que revela mi recorrido de navegación.
+- **Server (respuesta):** el software del servidor y su versión (`Apache/2.4.68`), dato útil para un atacante que busca vulnerabilidades.
 - **Contenido de la respuesta:** el HTML completo de la página que recibo.
 - **Cookies:** si el sitio las usara, viajarían visibles y podrían robarse para secuestrar la sesión.
 
