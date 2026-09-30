@@ -53,8 +53,7 @@ Esto significa que **toda la comunicación viaja en texto plano**. Es como una p
 
 > **Nota:** `neverssl.com` redirige a un subdominio aleatorio (en mi caso `sublimelushrelaxedjoke.neverssl.com/online/`) para evitar que el navegador use una versión guardada en caché. El sitio sigue siendo el mismo y sigue funcionando por HTTP.
 
-![Captura de la pestaña Network en neverssl.com](<img width="2878" height="1718" alt="captura-network" src="https://github.com/user-attachments/assets/92bdfd0a-6017-4975-92f0-0710185564d7" />
-)
+![Captura de la pestaña Network en neverssl.com](evidencia/image.png)
 
 ### Datos de la solicitud
 
